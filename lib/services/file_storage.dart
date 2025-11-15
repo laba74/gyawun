@@ -180,22 +180,25 @@ class FileStorage {
       await GetIt.I<YTMusic>().refreshHeaders();
     }
     if (favourites != null) {
-      await Future.forEach(favourites.entries, (entry) async {
-        Hive.box('FAVOURITES').put(entry.key, entry.value);
-      });
+      // Use regular for loop instead of Future.forEach for better performance
+      for (final entry in favourites.entries) {
+        await Hive.box('FAVOURITES').put(entry.key, entry.value);
+      }
     }
     if (playlists != null) {
       await GetIt.I<LibraryService>().setPlaylists(playlists);
     }
     if (history != null) {
-      await Future.forEach(history.entries, (entry) async {
-        Hive.box('SONG_HISTORY').put(entry.key, entry.value);
-      });
+      // Use regular for loop instead of Future.forEach for better performance
+      for (final entry in history.entries) {
+        await Hive.box('SONG_HISTORY').put(entry.key, entry.value);
+      }
     }
     if (downloads != null) {
-      await Future.forEach(downloads.entries, (entry) async {
-        Hive.box('DOWNLOADS').put(entry.key, entry.value);
-      });
+      // Use regular for loop instead of Future.forEach for better performance
+      for (final entry in downloads.entries) {
+        await Hive.box('DOWNLOADS').put(entry.key, entry.value);
+      }
     }
     return true;
   }

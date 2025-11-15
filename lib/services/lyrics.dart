@@ -5,6 +5,9 @@ import 'package:translator/translator.dart';
 import 'package:language_detector/language_detector.dart';
 
 class Lyrics {
+  // HTTP timeout to prevent indefinite hanging
+  static const httpTimeout = Duration(seconds: 15);
+
   Map lyricsList = {};
   Future<Map<String, dynamic>> getLyrics({
     required String videoId,
@@ -63,13 +66,13 @@ class Lyrics {
     String? album,
   }) async {
     String url =
-        'http://lrclib.net/api/search?track_name=${title.replaceAll(' ', '+')}';
+        'https://lrclib.net/api/search?track_name=${title.replaceAll(' ', '+')}';
     Map lyric;
     if (artist != null && album != null) {
       url =
-          'http://lrclib.net/api/get?artist_name=${artist.replaceAll(' ', '+')}&track_name=${title.replaceAll(' ', '+')}&album_name=${album.replaceAll(' ', '+')}&duration=$durationInSeconds';
+          'https://lrclib.net/api/get?artist_name=${artist.replaceAll(' ', '+')}&track_name=${title.replaceAll(' ', '+')}&album_name=${album.replaceAll(' ', '+')}&duration=$durationInSeconds';
       Uri uri = Uri.parse(url);
-      Uint8List bodyBytes = (await get(uri)).bodyBytes;
+      Uint8List bodyBytes = (await get(uri).timeout(httpTimeout)).bodyBytes;
       Map decoded = jsonDecode(utf8.decode(bodyBytes));
       lyric = decoded;
     } else {
@@ -80,7 +83,7 @@ class Lyrics {
         url += '&album_name=${album.replaceAll(' ', '+')}';
       }
       Uri uri = Uri.parse(url);
-      Uint8List bodyBytes = (await get(uri)).bodyBytes;
+      Uint8List bodyBytes = (await get(uri).timeout(httpTimeout)).bodyBytes;
       List decoded = jsonDecode(utf8.decode(bodyBytes));
       decoded.sort((a, b) {
         double dif1 =

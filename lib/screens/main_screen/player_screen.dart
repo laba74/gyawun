@@ -125,39 +125,6 @@ class _PlayerScreenState extends State<PlayerScreen> {
       ),
     );
     return c.primary;
-    // PaletteGenerator paletteGenerator =
-    //     await PaletteGenerator.fromImageProvider(
-    //   CachedNetworkImageProvider(
-    //     image,
-    //     errorListener: (p0) {
-    //       if (mounted) {
-    //         setState(() {
-    //           image = getEnhancedImage(image!,
-    //               dp: MediaQuery.of(context).devicePixelRatio,
-    //               quality: 'medium');
-    //         });
-    //       }
-    //     },
-    //   ),
-    // );
-
-    // if (mounted) {
-    //   if (isDark) {
-    //     return paletteGenerator.darkVibrantColor?.color ??
-    //         paletteGenerator.dominantColor?.color ??
-    //         paletteGenerator.darkMutedColor?.color ??
-    //         paletteGenerator.lightVibrantColor?.color ??
-    //         paletteGenerator.lightMutedColor?.color;
-    //   } else {
-    //     return paletteGenerator.lightMutedColor?.color ??
-    //         paletteGenerator.darkVibrantColor?.color ??
-    //         paletteGenerator.dominantColor?.color ??
-    //         paletteGenerator.darkMutedColor?.color ??
-    //         paletteGenerator.lightVibrantColor?.color;
-    //   }
-    // } else {
-    //   return Colors.transparent;
-    // }
   }
 
   MaterialColor primaryWhite = const MaterialColor(
@@ -190,14 +157,18 @@ class _PlayerScreenState extends State<PlayerScreen> {
           ? const Center(
               child: AdaptiveProgressRing(),
             )
-          // ignore: deprecated_member_use
-          : WillPopScope(
-              onWillPop: () async {
+          : PopScope(
+              canPop: false,
+              onPopInvokedWithResult: (bool didPop, dynamic result) async {
+                if (didPop) return;
+
                 if (panelController.isAttached && panelController.isPanelOpen) {
                   await panelController.close();
-                  return false;
+                } else {
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                  }
                 }
-                return true;
               },
               child: AnnotatedRegion<SystemUiOverlayStyle>(
                 value: const SystemUiOverlayStyle(

@@ -29,6 +29,7 @@ class MediaPlayer extends ChangeNotifier {
   final ValueNotifier<ButtonState> _buttonState =
       ValueNotifier(ButtonState.loading);
   Timer? _timer;
+  Timer? _playingStatsTimer;
   final ValueNotifier<Duration?> _timerDuration = ValueNotifier(null);
 
   final ValueNotifier<LoopMode> _loopMode = ValueNotifier(LoopMode.off);
@@ -84,7 +85,7 @@ class MediaPlayer extends ChangeNotifier {
     _listenToTotalDuration();
     _listenToChangesInSong();
     _listenToShuffle();
-    Timer.periodic(const Duration(seconds: 10), (timer) {
+    _playingStatsTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (currentSongNotifier.value != null && _player.playing) {
         GetIt.I<YTMusic>()
             .addPlayingStats(currentSongNotifier.value!.id, _player.position);
@@ -392,13 +393,14 @@ class MediaPlayer extends ChangeNotifier {
     if (isNext) {
       index = _player.sequence.isEmpty ? 0 : currentIndex.value! + 1;
     }
-    await Future.forEach(songs, (song) async {
+    // Use regular for loop instead of Future.forEach for better performance
+    for (final song in songs) {
       Map<String, dynamic> mapSong = Map.from(song);
       final source = await _getAudioSource(mapSong);
-      await _player.insertAudioSource(index,source );
+      await _player.insertAudioSource(index, source);
       index++;
-    });
-    if(!_player.playing){
+    }
+    if (!_player.playing) {
       _player.play();
     }
   }
@@ -421,6 +423,26 @@ class MediaPlayer extends ChangeNotifier {
     _timerDuration.value = null;
     _timer?.cancel();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    // Cancel all timers to prevent memory leaks
+    _timer?.cancel();
+    _playingStatsTimer?.cancel();
+
+    // Dispose value notifiers
+    _currentSongNotifier.dispose();
+    _currentIndex.dispose();
+    _buttonState.dispose();
+    _timerDuration.dispose();
+    _loopMode.dispose();
+    _progressBarState.dispose();
+
+    // Dispose audio player
+    _player.dispose();
+
+    super.dispose();
   }
 }
 

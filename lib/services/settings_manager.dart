@@ -179,9 +179,10 @@ class SettingsManager extends ChangeNotifier {
   }
 
   Future<void> setSettings(Map value) async {
-    await Future.forEach(value.entries, (entry) async {
+    // Use regular for loop instead of Future.forEach for better performance
+    for (final entry in value.entries) {
       await _box.put(entry.key, entry.value);
-    });
+    }
     notifyListeners();
     _init();
   }

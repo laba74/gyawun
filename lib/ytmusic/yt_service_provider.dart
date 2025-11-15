@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart';
 
+import '../config/api_config.dart';
 import 'helpers.dart';
 
 abstract class YTMusicServices {
@@ -40,13 +41,15 @@ abstract class YTMusicServices {
     refreshHeaders();
   }
 
-  static const ytmDomain = 'music.youtube.com';
-  static const httpsYtmDomain = 'https://music.youtube.com';
-  static const baseApiEndpoint = '/youtubei/v1/';
-  static const String ytmParams =
-      '?alt=json&key=AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30';
-  static const userAgent =
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0';
+  // API configuration - moved to ApiConfig for better security
+  static const ytmDomain = ApiConfig.ytmDomain;
+  static const httpsYtmDomain = ApiConfig.httpsYtmDomain;
+  static const baseApiEndpoint = ApiConfig.baseApiEndpoint;
+  static String get ytmParams => ApiConfig.ytmParams;
+  static const userAgent = ApiConfig.userAgent;
+
+  // HTTP timeout to prevent indefinite hanging
+  static const httpTimeout = Duration(seconds: 30);
 
   Map<String, String> headers = {};
   int? signatureTimestamp;
@@ -57,14 +60,16 @@ abstract class YTMusicServices {
     Map<String, String>? headers,
   ) async {
     final Uri uri = Uri.parse(url);
-    final Response response = await get(uri, headers: headers);
+    final Response response =
+        await get(uri, headers: headers).timeout(httpTimeout);
     return response;
   }
 
   Future<Response> addPlayingStats(String videoId, Duration time) async {
     final Uri uri = Uri.parse(
         'https://music.youtube.com/api/stats/watchtime?ns=yt&ver=2&c=WEB_REMIX&cmt=${(time.inMilliseconds / 1000)}&docid=$videoId');
-    final Response response = await get(uri, headers: headers);
+    final Response response =
+        await get(uri, headers: headers).timeout(httpTimeout);
     return response;
   }
 
@@ -92,8 +97,8 @@ abstract class YTMusicServices {
         endpoint +
         ytmParams +
         additionalParams);
-    final response =
-        await post(uri, headers: this.headers, body: jsonEncode(body));
+    final response = await post(uri, headers: this.headers, body: jsonEncode(body))
+        .timeout(httpTimeout);
 
     if (response.statusCode == 200) {
       return json.decode(response.body) as Map;

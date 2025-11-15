@@ -50,36 +50,75 @@ class YouTubeAudioSource extends StreamAudioSource {
       throw Exception('Failed to load audio: $e');
     }
   }
+
+  /// Disposes resources used by this audio source.
+  ///
+  /// Call this when the audio source is no longer needed.
+  void dispose() {
+    ytExplode.close();
+  }
 }
 
 final YoutubeExplode ytExplode = YoutubeExplode();
+
+// Global reference to the HTTP server to allow proper cleanup
+HttpServer? _audioStreamServer;
 
 /// Starts a generic HTTP server that listens for requests to stream YouTube audio.
 ///
 /// Clients must pass 'id' and 'quality' as URL query parameters.
 /// The server binds to a random available port.
 /// Returns the base URL for the streaming endpoint.
+///
+/// Note: Only one server instance is created. If a server already exists,
+/// its URL is returned.
 Future<String> createAudioStreamServer() async {
+  // If server already exists, return its URL
+  if (_audioStreamServer != null) {
+    final host = _audioStreamServer!.address.host;
+    final port = _audioStreamServer!.port;
+    return 'http://$host:$port/audio';
+  }
+
   // Bind to a random port (port 0) on the loopback interface.
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+  _audioStreamServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
 
   // Listen for requests and dispatch them to the handler
-  server.listen((HttpRequest request) {
+  _audioStreamServer!.listen((HttpRequest request) {
     // Pass only the request object to the handler
     handleAudioRequest(request);
   });
 
   // Construct the base streaming URL
-  final host = server.address.host;
-  final port = server.port;
+  final host = _audioStreamServer!.address.host;
+  final port = _audioStreamServer!.port;
   final url = 'http://$host:$port/audio';
 
   print(
       'Generic streaming server started on $url. Use ?id=...&quality=... to stream.');
 
-  // You would typically return the server instance here too, if you needed
-  // to close it later (e.g., return {'server': server, 'url': url})
   return url;
+}
+
+/// Closes the audio stream server and releases resources.
+///
+/// Call this when the server is no longer needed to prevent resource leaks.
+Future<void> closeAudioStreamServer() async {
+  if (_audioStreamServer != null) {
+    await _audioStreamServer!.close(force: false);
+    _audioStreamServer = null;
+    print('Audio stream server closed.');
+  }
+}
+
+/// Disposes all resources used by the audio streaming module.
+///
+/// This should be called when the app is shutting down or when
+/// audio streaming is no longer needed.
+Future<void> disposeAudioStreaming() async {
+  await closeAudioStreamServer();
+  ytExplode.close();
+  print('Audio streaming resources disposed.');
 }
 
 // ----------------------------------------------------------------------------

@@ -240,4 +240,28 @@ class DownloadManager {
       rethrow;
     }
   }
+
+  /// Disposes all resources to prevent memory leaks.
+  ///
+  /// Call this when the DownloadManager is no longer needed.
+  void dispose() {
+    // Cancel all progress update timers
+    for (final timer in _progressUpdateTimers.values) {
+      timer?.cancel();
+    }
+    _progressUpdateTimers.clear();
+    _pendingProgressUpdates.clear();
+
+    // Close HTTP client
+    client.close();
+
+    // Note: ytExplode is a global singleton, so we don't close it here.
+    // It should be closed when the app shuts down via disposeAudioStreaming()
+    // or a similar global cleanup method.
+
+    // Dispose ValueNotifier
+    downloads.dispose();
+
+    print('🧹 [CLEANUP] DownloadManager resources disposed.');
+  }
 }
