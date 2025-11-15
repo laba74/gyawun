@@ -375,7 +375,14 @@ class MediaPlayer extends ChangeNotifier {
     await _player.clearAudioSources();
     List songs = await GetIt.I<YTMusic>().getNextSongList(
         playlistId: endpoint['playlistId'], params: endpoint['params']);
+
+    if (songs.isEmpty) {
+      return; // Don't try to play empty playlist
+    }
+
     await _addSongListToQueue(songs);
+    // Seek to beginning to ensure playback starts from first song
+    await _player.seek(Duration.zero, index: 0);
     _player.play();
   }
 

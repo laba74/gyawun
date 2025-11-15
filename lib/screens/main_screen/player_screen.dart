@@ -77,9 +77,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
       if (mounted) {
         setState(() {
           currentSong = GetIt.I<MediaPlayer>().currentSongNotifier.value;
+          // Update image immediately in the same setState to avoid desync
+          if (currentSong?.extras?['thumbnails'] != null &&
+              currentSong!.extras!['thumbnails'].isNotEmpty) {
+            image = getEnhancedImage(
+              currentSong!.extras!['thumbnails'].first['url'],
+            );
+          }
         });
       }
-      _fetchImage();
     }
   }
 

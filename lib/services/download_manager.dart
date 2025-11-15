@@ -199,29 +199,54 @@ class DownloadManager {
     final String playlistTitle = playlist['title'] ?? 'Unknown Playlist';
     print('📋 [PLAYLIST] Starting playlist download: $playlistTitle');
 
-    List songs =
-        await GetIt.I<YTMusic>().getPlaylistSongs(playlist['playlistId']);
-
-    print('📋 [PLAYLIST] Found ${songs.length} songs in: $playlistTitle');
-
-    int skipped = 0;
-    int queued = 0;
-
-    for (Map song in songs) {
-      // Skip if song is already downloaded, downloading, or processing
-      Map? existingSong = _box.get(song['videoId']);
-      if (existingSong != null &&
-          ['DOWNLOADED', 'DOWNLOADING', 'PROCESSING']
-              .contains(existingSong['status'])) {
-        skipped++;
-        print('⏩ [SKIP] Already ${existingSong['status'].toLowerCase()}: ${song['title']}');
-        continue;
+    try {
+      // Check if playlistId exists
+      if (playlist['playlistId'] == null || playlist['playlistId'].isEmpty) {
+        print('❌ [ERROR] Invalid playlist ID for: $playlistTitle');
+        return;
       }
-      downloadSong(song); // Queue each song download (no await to add all to queue quickly)
-      queued++;
-    }
 
-    print('📋 [PLAYLIST] Summary - Queued: $queued, Skipped: $skipped, Total: ${songs.length}');
+      List songs =
+          await GetIt.I<YTMusic>().getPlaylistSongs(playlist['playlistId']);
+
+      if (songs.isEmpty) {
+        print('⚠️  [WARNING] No songs found in playlist: $playlistTitle');
+        return;
+      }
+
+      print('📋 [PLAYLIST] Found ${songs.length} songs in: $playlistTitle');
+
+      int skipped = 0;
+      int queued = 0;
+
+      for (Map song in songs) {
+        // Validate song has required fields
+        if (song['videoId'] == null) {
+          print('⏩ [SKIP] Song missing videoId: ${song['title'] ?? 'Unknown'}');
+          skipped++;
+          continue;
+        }
+
+        // Skip if song is already downloaded, downloading, or processing
+        Map? existingSong = _box.get(song['videoId']);
+        if (existingSong != null &&
+            ['DOWNLOADED', 'DOWNLOADING', 'PROCESSING']
+                .contains(existingSong['status'])) {
+          skipped++;
+          print(
+              '⏩ [SKIP] Already ${existingSong['status'].toLowerCase()}: ${song['title']}');
+          continue;
+        }
+        downloadSong(
+            song); // Queue each song download (no await to add all to queue quickly)
+        queued++;
+      }
+
+      print(
+          '📋 [PLAYLIST] Summary - Queued: $queued, Skipped: $skipped, Total: ${songs.length}');
+    } catch (e) {
+      print('❌ [ERROR] Failed to download playlist "$playlistTitle": $e');
+    }
   }
 
   Future<AudioOnlyStreamInfo> _getSongInfo(String videoId,
