@@ -41,6 +41,16 @@
     alt="Get it on GitHub"
     height="80">](https://github.com/sheikhhaziq/gyavun/releases/latest)
 
+## 🖥️ Windows Development
+
+To compile and run on Windows:
+
+1. **First time only**: Run `setup-windows.bat` to initialize Windows support
+2. **Run in dev mode**: Double-click `run.bat`
+3. **Build for production**: Double-click `build.bat`
+
+See [WINDOWS_BUILD.md](WINDOWS_BUILD.md) for detailed instructions.
+
 
 ## Contributing
 

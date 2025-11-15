@@ -2,6 +2,48 @@
 
 Ce document explique comment compiler et exécuter **Gyawun Music** sur Windows.
 
+---
+
+## ⚠️ IMPORTANT - Première Installation
+
+**Avant de compiler ou d'exécuter l'application pour la première fois**, vous devez initialiser le support Windows :
+
+### Initialisation Automatique (RECOMMANDÉ)
+
+Double-cliquer sur `setup-windows.bat` ou exécuter :
+```cmd
+setup-windows.bat
+```
+
+**Ou avec PowerShell :**
+```powershell
+.\setup-windows.ps1
+```
+
+**Ce script va :**
+1. ✅ Vérifier l'installation de Flutter
+2. ✅ Activer le support Windows desktop
+3. ✅ Créer les fichiers de configuration Windows
+4. ✅ Télécharger les dépendances
+
+### Initialisation Manuelle
+
+Si vous préférez le faire manuellement :
+```cmd
+# 1. Activer Windows desktop
+flutter config --enable-windows-desktop
+
+# 2. Créer les fichiers Windows
+flutter create --platforms=windows .
+
+# 3. Télécharger les dépendances
+flutter pub get
+```
+
+**⚠️ Cette étape n'est nécessaire qu'UNE SEULE FOIS lors de la première installation.**
+
+---
+
 ## 📋 Prérequis
 
 ### 1. Installer Flutter
@@ -43,6 +85,16 @@ flutter config --enable-windows-desktop
 ---
 
 ## 🚀 Méthodes de Compilation et Exécution
+
+### ⚡ Première Utilisation
+
+**Si c'est la première fois que vous compilez le projet :**
+
+1. **Exécuter `setup-windows.bat`** (une seule fois)
+2. Attendre la fin de l'initialisation
+3. Ensuite, utiliser `run.bat` ou `build.bat` normalement
+
+---
 
 ### Méthode 1 : Scripts Batch (.bat) - **RECOMMANDÉ**
 
@@ -229,6 +281,24 @@ Pour distribuer l'application :
 ---
 
 ## ⚠️ Résolution de Problèmes
+
+### Erreur : "No Windows desktop project configured"
+```
+Error: No Windows desktop project configured.
+```
+
+**Solution :**
+```cmd
+# Exécuter le script d'initialisation
+setup-windows.bat
+
+# Ou manuellement :
+flutter create --platforms=windows .
+```
+
+Cette erreur signifie que les fichiers de configuration Windows n'ont pas été créés. Exécutez `setup-windows.bat` une fois pour les générer.
+
+---
 
 ### Erreur : "Flutter not found"
 ```cmd
