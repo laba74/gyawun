@@ -6,11 +6,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 import '../../generated/l10n.dart';
 import '../../themes/text_styles.dart';
 import '../../utils/bottom_modals.dart';
 import '../../utils/check_update.dart';
+import '../browse_screen/browse_screen.dart';
 import 'bottom_player.dart';
 
 class MainScreen extends StatefulWidget {
@@ -44,7 +46,7 @@ class _MainScreenState extends State<MainScreen> {
     _update();
   }
 
-  void _handleIntent(SharedMediaFile value) {
+  _handleIntent(SharedMediaFile value) {
     if (value.mimeType == 'text/plain' &&
         value.path.contains('music.youtube.com')) {
       Uri? uri = Uri.tryParse(value.path);
@@ -55,11 +57,12 @@ class _MainScreenState extends State<MainScreen> {
         } else if (uri.pathSegments.first == 'playlist' &&
             uri.queryParameters['list'] != null) {
           String id = uri.queryParameters['list']!;
-          context.push(
-            '/browse',
-            extra: {
-              'endpoint': {'browseId': id.startsWith('VL') ? id : 'VL$id'},
-            },
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (_) => BrowseScreen(
+                  endpoint: {'browseId': id.startsWith('VL') ? id : 'VL$id'}),
+            ),
           );
         }
       }
@@ -72,7 +75,7 @@ class _MainScreenState extends State<MainScreen> {
     super.dispose();
   }
 
-  Future<void> _update() async {
+  _update() async {
     final deviceInfoPlugin = DeviceInfoPlugin();
     BaseDeviceInfo deviceInfo = await deviceInfoPlugin.deviceInfo;
     UpdateInfo? updateInfo = await Isolate.run(() async {
@@ -148,29 +151,37 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
       bottomNavigationBar: screenWidth < 450
-          ? NavigationBar(
-              selectedIndex: widget.navigationShell.currentIndex,
-              destinations: [
-                NavigationDestination(
-                  selectedIcon: const Icon(CupertinoIcons.music_house_fill),
+          ? SalomonBottomBar(
+              currentIndex: widget.navigationShell.currentIndex,
+              items: [
+                SalomonBottomBarItem(
+                  activeIcon: const Icon(CupertinoIcons.music_house_fill),
                   icon: const Icon(CupertinoIcons.music_house),
-                  label: S.of(context).Home,
+                  title: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(S.of(context).Home),
+                  ),
                 ),
-                NavigationDestination(
-                  selectedIcon: const Icon(Icons.library_music),
+                SalomonBottomBarItem(
+                  activeIcon: const Icon(Icons.library_music),
                   icon: const Icon(Icons.library_music_outlined),
-                  label: S.of(context).Saved,
+                  title: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(S.of(context).Saved),
+                  ),
                 ),
-                NavigationDestination(
-                  selectedIcon: const Icon(CupertinoIcons.settings_solid),
+                SalomonBottomBarItem(
+                  activeIcon: const Icon(CupertinoIcons.settings_solid),
                   icon: const Icon(CupertinoIcons.settings),
-                  label: S.of(context).Settings,
+                  title: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(S.of(context).Settings),
+                  ),
                 ),
               ],
               backgroundColor:
                   Theme.of(context).colorScheme.surfaceContainerLow,
-              // colo: Theme.of(context).colorScheme.onSurface,
-              onDestinationSelected: _goBranch,
+              onTap: _goBranch,
             )
           : null,
     );

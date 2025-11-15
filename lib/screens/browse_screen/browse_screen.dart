@@ -51,7 +51,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
     }
   }
 
-  Future<void> fetchData() async {
+  fetchData() async {
     setState(() {
       initialLoading = true;
       nextLoading = false;
@@ -164,7 +164,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
     super.initState();
   }
 
-  Widget _buildImage(BuildContext context, List thumbnails, double maxWidth,
+  _buildImage(BuildContext context, List thumbnails, double maxWidth,
       {bool isRound = false}) {
     return isRound
         ? CircleAvatar(
